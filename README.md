@@ -1,7 +1,6 @@
-# pux-starter-app
+# Rock Paper Scissors
 
-Starter [Pux](https://github.com/alexmingoia/purescript-pux/) application
-using webpack with hot-reloading.
+Based on @alexmingoia's [Pux](https://github.com/alexmingoia/purescript-pux/) [Starter Application](https://github.com/alexmingoia/pux-starter-app/).
 
 See the [Guide](https://alexmingoia.github.io/purescript-pux) for help learning
 Pux.
@@ -15,7 +14,7 @@ npm install
 npm start
 ```
 
-Visit `http://localhost:3000` in your browser, edit `src/purs/Layout.purs`
+Visit `http://localhost:3000` in your browser, edit `src/purs/Game.purs`
 and watch the magic!
 
 ## Available scripts

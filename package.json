@@ -1,13 +1,12 @@
 {
-  "name": "purescript-starter-app",
-  "version": "5.0.0",
-  "description": "Starter Pux application using webpack with hot-reloading.",
-  "main": "src/js/index.js",
+  "name": "rps-game-example",
+  "version": "0.1.0",
+  "description": "A Rock-Paper-Scissors game example based on Alex Mingoia's pux-starter-app.",
+  "main": "support/index.js",
   "keywords": [
     "pux",
     "purescript-pux",
-    "boilerplate",
-    "starter-app"
+    "game"
   ],
   "scripts": {
     "postinstall": "./node_modules/.bin/bower cache clean && ./node_modules/.bin/bower install",
@@ -16,17 +15,10 @@
     "serve:watch": "node ./webpack.config.js",
     "serve:prod": "http-server dist --cors -p 3000",
     "start": "npm run serve:watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/alexmingoia/pux-starter-app.git"
+    "test": "pulp test",
+    "repl": "pulp psci"
   },
   "author": "Alexander C. Mingoia",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/alexmingoia/pux-starter-app/issues"
-  },
   "dependencies": {
     "react": "^15.0.0",
     "react-dom": "^15.0.0",
