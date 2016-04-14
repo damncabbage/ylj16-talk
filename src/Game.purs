@@ -1,12 +1,32 @@
-module App.Game where
+module App.Game
+  ( Hand(..)
+  , Result(..)
+  , winner
+  ) where
 
 import Prelude
-import Data.Array (reverse)
-import Data.String (joinWith, split)
 
-strReverse :: String -> String
-strReverse x =
-  (joinWith "" <<< reverse <<< split "") x
+data Hand   = Rock | Paper | Scissors
+data Result = P1Won | P2Won | Draw
 
-usingStrReverse :: String
-usingStrReverse = strReverse "My String"
+winner :: Hand -> Hand -> Result
+winner h1 h2 = Draw
+
+
+
+
+
+
+
+
+
+-- Unfortunate debugging boilerplate:
+import Data.Generic (class Generic, gShow)
+
+derive instance genHand :: Generic Hand
+derive instance genResult :: Generic Result
+
+instance showHand :: Show Hand where
+  show = gShow
+instance showResult :: Show Result where
+  show = gShow
