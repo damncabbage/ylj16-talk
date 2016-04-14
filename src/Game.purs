@@ -10,7 +10,16 @@ data Hand   = Rock | Paper | Scissors
 data Result = P1Won | P2Won | Draw
 
 winner :: Hand -> Hand -> Result
-winner h1 h2 = Draw
+winner h1 h2 = case h1, h2 of
+  Rock, Rock         -> Draw
+  Rock, Paper        -> P2Won
+  Rock, Scissors     -> P1Won
+  Paper, Rock        -> P1Won
+  Paper, Paper       -> Draw
+  Paper, Scissors    -> P2Won
+  Scissors, Rock     -> P2Won
+  Scissors, Paper    -> P1Won
+  Scissors, Scissors -> Draw
 
 
 
