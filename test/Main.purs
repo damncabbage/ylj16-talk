@@ -19,4 +19,19 @@ instance arbHand :: Arbitrary RandomHand where
 
 main :: Eff _ Unit
 main = runTest do
-  pure unit
+  test "matching hands draw" do
+    quickCheck match
+  test "individual tests" do
+    assert "🍪 > 🔪" (
+      winner Rock Scissors == P1Won
+    )
+    assert "📜 > 🍪" (
+      winner Paper Rock == P1Won
+    )
+
+match :: RandomHand -> RandomHand -> QC.Result
+match (RandomHand h1) (RandomHand h2) =
+  let result = winner h1 h2
+   in if h1 == h2
+        then result === Draw
+        else result /== Draw
