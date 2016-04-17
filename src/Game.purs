@@ -9,6 +9,9 @@ import Prelude
 data Hand   = Rock | Paper | Scissors
 data Result = P1Won | P2Won | Draw
 
+derive instance eqHand   :: Eq Hand
+derive instance eqResult :: Eq Result
+
 winner :: Hand -> Hand -> Result
 winner h1 h2 = case h1, h2 of
   Rock, Rock         -> Draw
