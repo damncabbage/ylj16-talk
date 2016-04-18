@@ -15,6 +15,7 @@ module.exports = {
     loaders: [
       { test: /\.purs$/, loader: 'purs-loader' },
       { test: /\.js$/, loader: "webpack-strip?strip[]=console.log" },
+      { test: /\.css$/, loader: "style-loader!css-loader" }
     ],
   },
   plugins: [
