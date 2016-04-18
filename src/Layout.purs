@@ -1,34 +1,36 @@
 module App.Layout where
 
-import App.Counter as Counter
+import App.Play as Play
 import App.Routes (Route(Home, NotFound))
-import Prelude (($), map)
-import Pux.Html (Html, div, h1, p, text)
+import Pux.Html (forwardTo, Html, div, h1, text)
+import Pux.Html.Attributes (className)
+import Pux.Html.Elements (main)
 
 data Action
-  = Child (Counter.Action)
+  = PlayGame (Play.Action)
   | PageView Route
 
 type State =
   { route :: Route
-  , count :: Counter.State }
+  , game :: Play.State }
 
 init :: State
 init =
   { route: NotFound
-  , count: Counter.init }
+  , game: Play.init }
 
 update :: Action -> State -> State
-update (PageView route) state = state { route = route }
-update (Child action) state = state { count = Counter.update action state.count }
+update (PageView route)  state = state { route = route }
+update (PlayGame action) state = state { game = Play.update action state.game }
 
 view :: State -> Html Action
 view state =
-  div
-    []
-    [ h1 [] [ text "Pux Starter App" ]
-    , p [] [ text "Change src/Layout.purs and watch me hot-reload." ]
-    , case state.route of
-        Home -> map Child $ Counter.view state.count
-        NotFound -> App.NotFound.view state
-    ]
+  main [] [
+    case state.route of
+      NotFound -> App.NotFound.view state
+      Home ->
+        div [ className "game-container" ]
+          [ h1 [] [ text "Rock Paper Scissors" ]
+          , forwardTo PlayGame (Play.view state.game)
+          ]
+  ]

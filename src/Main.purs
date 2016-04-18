@@ -1,11 +1,11 @@
 module Main where
 
-import App.Routes (match)
+import Prelude
+import App.Routes as Routes
 import App.Layout (Action(PageView), State, view, update)
 import Control.Monad.Eff (Eff)
 import Debug.Trace (traceAny)
 import DOM (DOM)
-import Prelude (bind, return)
 import Pux (App, CoreEffects, fromSimple, start, renderToDOM)
 import Pux.Router (sampleUrl)
 import Signal ((~>))
@@ -19,7 +19,7 @@ main state = do
   urlSignal <- sampleUrl
 
   -- | Map a signal of URL changes to PageView actions.
-  let routeSignal = urlSignal ~> \r -> PageView (match r)
+  let routeSignal = urlSignal ~> \r -> PageView (Routes.match r)
 
   app <- start
     { initialState: state
@@ -32,4 +32,4 @@ main state = do
   renderToDOM "#app" app.html
 
   -- | Used by hot-reloading code in src/js/index.js
-  return app
+  pure app
