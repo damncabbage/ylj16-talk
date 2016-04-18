@@ -2,26 +2,31 @@ module App.Layout where
 
 import App.Play as Play
 import App.Routes (Route(Home, NotFound))
+import App.Types (AppEffects)
+import App.Utils (effectfulChild)
+import Pux (fromSimple, noEffects, EffModel)
 import Pux.Html (forwardTo, Html, div, h1, text)
 import Pux.Html.Attributes (className)
 import Pux.Html.Elements (main)
 
-data Action
-  = PlayGame (Play.Action)
-  | PageView Route
+data Action = PlayGame (Play.Action)
+            | PageView Route
 
-type State =
-  { route :: Route
-  , game :: Play.State }
+type State = { route :: Route
+             , game :: Play.State
+             }
 
 init :: State
-init =
-  { route: NotFound
-  , game: Play.init }
+init = { route: NotFound
+       , game: Play.init
+       }
 
-update :: Action -> State -> State
-update (PageView route)  state = state { route = route }
-update (PlayGame action) state = state { game = Play.update action state.game }
+update :: forall eff. Action -> State -> EffModel State Action (AppEffects eff)
+update (PageView route)  state =
+  noEffects (state { route = route })
+update (PlayGame action) state =
+  effectfulChild (\r -> state { game = r}) PlayGame
+                 (fromSimple Play.update action state.game)
 
 view :: State -> Html Action
 view state =
