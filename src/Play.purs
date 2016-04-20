@@ -1,19 +1,25 @@
 module App.Play where
 
-import Prelude hiding (div)
-import Pux.Html (text, div, Html)
+import App.Game (Hand)
+import Data.Maybe (Maybe(..))
+import Pux.Html (button, text, div, Html)
 import Pux.Html.Attributes (className)
+import Pux.Html.Events (onClick)
+import Prelude hiding (div)
 
-type State = { }
+type State = { score :: Int }
 
 init :: State
-init = { }
+init = { score: 0 }
 
-data Action = Todo
+data Action = Win
 
 update :: Action -> State -> State
-update action state = state
+update Win state = state { score = state.score + 1 }
 
 view :: State -> Html Action
 view state =
-  div [ className "game" ] [ text "Hello" ]
+  div [ className "game" ] [
+    button [ onClick (\_ -> Win) ]
+           [ text (show state.score) ]
+  ]
