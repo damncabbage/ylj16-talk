@@ -2,6 +2,7 @@ module App.Game
   ( Hand(..)
   , Result(..)
   , winner
+  , paddedHand
   ) where
 
 import Prelude
@@ -24,9 +25,11 @@ winner h1 h2 = case h1, h2 of
   Scissors, Paper    -> P1Won
   Scissors, Scissors -> Draw
 
+-- Mucking around with a foreign import
+foreign import leftPad :: String -> Int -> String -> String
 
-
-
+paddedHand :: Hand -> String
+paddedHand h = leftPad (show h) 20 "."
 
 
 
