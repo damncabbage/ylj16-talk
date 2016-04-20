@@ -5,6 +5,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Random (RANDOM)
 import DOM (DOM)
+import Data.Array (reverse, concat)
 import Data.Maybe (Maybe(..))
 import Data.Maybe (maybe, Maybe(..))
 import Pux (EffModel, noEffects)
@@ -15,12 +16,14 @@ import Prelude hiding (div)
 
 ------ State ------
 type State = { scores       :: { p1 :: Int, p2 :: Int }
+             , rounds       :: Array Round
              , currentRound :: Maybe { result :: Result
                                      , round :: Round }
              }
 
 init :: State
 init = { scores: { p1: 0, p2: 0 }
+       , rounds: []
        , currentRound: Nothing
        }
 
@@ -42,6 +45,7 @@ update (Throw p1Hand) state = {
   }
 update (CalculateResult p1Hand p2Hand) state =
   let gameResult = winner p1Hand p2Hand
+      handPair   = { p1: p1Hand, p2: p2Hand }
       scoreFromResult p1 p2 =
         case gameResult of
           Draw  -> { p1: p1,     p2: p2    }
@@ -50,8 +54,10 @@ update (CalculateResult p1Hand p2Hand) state =
    in { state:
         state { currentRound =
                   Just { result: gameResult
-                       , round: { p1: p1Hand, p2: p2Hand }
+                       , round: handPair
                        }
+              , rounds =
+                  state.rounds <> [ handPair ]
               , scores =
                   (scoreFromResult state.scores.p1 state.scores.p2)
               }
@@ -89,12 +95,22 @@ view state =
               )
               state.currentRound
           )
-      , div [ className "previous-rounds" ]
-          [ h2 [] [ button [ onClick (\_ -> ResetGame) ]
-                           [ text "Reset Game" ]
-                  ]
-          ]
       ]
+    , div [ className "previous-rounds" ] (concat [
+        [ h2 [] [ text "Previous Rounds "
+                , button [ onClick (\_ -> ResetGame) ]
+                         [ text "Reset Game" ]
+                ]
+        ] <>
+        ( map (\r ->
+            p [] [ text (
+              "😃: "   <> handToIcon r.p1 <>
+              ", 💻: " <> handToIcon r.p2 <>
+              " => "   <> resultToText (winner r.p1 r.p2)
+            )]
+          ) (reverse state.rounds)
+        )
+      ])
     ]
   where
     options = map (\h -> { action: h, label: handToIcon h })
