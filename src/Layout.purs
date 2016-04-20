@@ -4,7 +4,7 @@ import App.Play as Play
 import App.Routes (Route(Home, NotFound))
 import App.Types (AppEffects)
 import App.Utils (effectfulChild)
-import Pux (fromSimple, noEffects, EffModel)
+import Pux (noEffects, EffModel)
 import Pux.Html (forwardTo, Html, div, h1, text)
 import Pux.Html.Attributes (className)
 import Pux.Html.Elements (main)
@@ -26,7 +26,7 @@ update (PageView route)  state =
   noEffects (state { route = route })
 update (PlayGame action) state =
   effectfulChild (\r -> state { game = r}) PlayGame
-                 (fromSimple Play.update action state.game)
+                 (Play.update action state.game)
 
 view :: State -> Html Action
 view state =

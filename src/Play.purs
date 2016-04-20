@@ -1,8 +1,12 @@
 module App.Play where
 
-import App.Game (PlayerPair, Result(..), Hand(..), Round, playerPair, winner, rockAI)
+import App.Game (Result(..), Hand(..), Round, winner, randomAI)
+import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Random (RANDOM)
+import DOM (DOM)
 import Data.Maybe (Maybe(..))
 import Data.Maybe (maybe, Maybe(..))
+import Pux (EffModel, noEffects)
 import Pux.Html (h2, p, button, text, div, Html)
 import Pux.Html.Attributes (className)
 import Pux.Html.Events (onClick)
@@ -21,25 +25,33 @@ init = { scores: { p1: 0, p2: 0 }
 
 ------ Actions and Updating ------
 data Action = Throw Hand
+            | CalculateResult Hand Hand
             | ResetGame
 
-update :: Action -> State -> State
-update ResetGame      state = init
-update (Throw p1Hand) state =
-  let p2Hand     = rockAI
-      gameResult = winner p1Hand p2Hand
+update :: forall eff. Action -> State -> EffModel State Action (dom :: DOM, random :: RANDOM | eff)
+update ResetGame      state = noEffects init
+update (Throw p1Hand) state = {
+    state: state,
+    effects: [ do
+      p2Hand <- liftEff randomAI
+      pure (CalculateResult p1Hand p2Hand)
+    ]
+  }
+update (CalculateResult p1Hand p2Hand) state =
+  let gameResult = winner p1Hand p2Hand
       scoreFromResult p1 p2 =
         case gameResult of
           Draw  -> { p1: p1,     p2: p2    }
           P1Won -> { p1: p1 + 1, p2: p2    }
           P2Won -> { p1: p1,     p2: p2 + 1}
-   in state { currentRound =
-                Just { result: gameResult
-                     , round: { p1: p1Hand, p2: p2Hand }
-                     }
-            , scores =
-                (scoreFromResult state.scores.p1 state.scores.p2)
-            }
+   in noEffects $
+        state { currentRound =
+                  Just { result: gameResult
+                       , round: { p1: p1Hand, p2: p2Hand }
+                       }
+              , scores =
+                  (scoreFromResult state.scores.p1 state.scores.p2)
+              }
 
 
 ------ View, to produce HTML ------
