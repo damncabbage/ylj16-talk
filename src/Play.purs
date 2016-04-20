@@ -1,6 +1,6 @@
 module App.Play where
 
-import App.Game (Result(..), Hand(..), Round, winner, randomAI)
+import App.Game (Result(..), Hand(..), Round, winner, beatsLastAI)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Random (RANDOM)
@@ -39,7 +39,7 @@ update ResetGame      state = noEffects init
 update (Throw p1Hand) state = {
     state: state,
     effects: [ do
-      p2Hand <- liftEff randomAI
+      p2Hand <- liftEff (beatsLastAI state.rounds)
       pure (CalculateResult p1Hand p2Hand)
     ]
   }

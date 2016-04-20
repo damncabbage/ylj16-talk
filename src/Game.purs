@@ -7,11 +7,15 @@ module App.Game
   , winner
   , rockAI
   , randomAI
+  , arsAI
+  , beatsLastAI
   ) where
 
 import Prelude
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Random (randomInt, RANDOM)
+import Data.Array (last)
+import Data.Maybe (maybe)
 
 data Hand   = Rock  | Paper | Scissors
 data Result = P1Won | P2Won | Draw
@@ -39,19 +43,54 @@ winner h1 h2 = case h1, h2 of
 playerPair :: forall a. a -> a -> PlayerPair a
 playerPair a b = { p1: a, p2: b }
 
+-- Could be used to make a shrunk "winner" function.
+-- As it is, it's just being used in the AIs detailed below.
+beats :: Hand -> Hand
+beats h = case h of
+  Rock     -> Paper
+  Paper    -> Scissors
+  Scissors -> Rock
 
------ AI -----
-
-rockAI :: Hand
-rockAI = Rock -- Dumb as a bag of.
-
-randomAI :: forall eff. Eff (random :: RANDOM | eff) Hand
-randomAI = do
+-- | Choose a random Hand. This is an Effectful function, as a random
+-- | number generator is dependent on (and change) external state.
+randomHand :: forall eff. Eff (random :: RANDOM | eff) Hand
+randomHand = do
   n <- randomInt 1 3
   pure $ case n of
     1 -> Rock
     2 -> Paper
     _ -> Scissors
+
+----- AI -----
+
+-- | A type alias for convenience; all the effectful AI functions are going to match it.
+type AI eff = Array Round -> Eff (random :: RANDOM | eff) Hand
+
+rockAI :: Hand
+rockAI = Rock -- Dumb as a bag of.
+
+-- | Random AI: Randomly picks a hand, ignoring the past.
+randomAI :: forall eff. AI eff
+randomAI _ = randomHand
+
+-- | Beats-Last AI: Picks whatever beats the opponent's last hand choice.
+beatsLastAI :: forall eff. AI eff
+beatsLastAI rounds =
+  let chooseHand lr = pure (beats lr.p1)
+   in maybe randomHand chooseHand (last rounds)
+
+-- | The ArsTechnica-detailed AI; see http://arstechnica.com/science/2014/05/win-at-rock-paper-scissors-by-knowing-thy-opponent/
+-- | The rules:
+-- | * First round? Random hand.
+-- | * If we won, play our opponent's hand.
+-- | * If they won, play what would've just beaten our hand.
+arsAI :: forall eff. AI eff
+arsAI rounds =
+  let chooseHand lr = case winner lr.p1 lr.p2 of
+                        Draw  -> randomHand
+                        P1Won -> pure lr.p1 -- HACK: Everything in this game is making the assumption that P1 is human
+                        P2Won -> pure (beats lr.p2)
+   in maybe randomHand chooseHand (last rounds)
 
 
 
