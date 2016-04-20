@@ -1,17 +1,22 @@
 module App.Game
   ( Hand(..)
   , Result(..)
+  , PlayerPair
+  , Round
+  , playerPair
   , winner
-  , paddedHand
+  , rockAI
   ) where
 
 import Prelude
 
-data Hand   = Rock | Paper | Scissors
+data Hand   = Rock  | Paper | Scissors
 data Result = P1Won | P2Won | Draw
+derive instance eqHand   :: Eq Hand   -- Makes Hand and Result
+derive instance eqResult :: Eq Result -- comparable with ==
 
-derive instance eqHand   :: Eq Hand
-derive instance eqResult :: Eq Result
+type PlayerPair a = { p1 :: a, p2 :: a }
+type Round        = PlayerPair Hand
 
 winner :: Hand -> Hand -> Result
 winner h1 h2 = case h1, h2 of
@@ -25,17 +30,25 @@ winner h1 h2 = case h1, h2 of
   Scissors, Paper    -> P1Won
   Scissors, Scissors -> Draw
 
--- Mucking around with a foreign import
-foreign import leftPad :: String -> Int -> String -> String
+----- Misc Helpers -----
 
-paddedHand :: Hand -> String
-paddedHand h = leftPad (show h) 20 "."
-
-
+-- | A quick helper for a common P1 + P2 structure
+playerPair :: forall a. a -> a -> PlayerPair a
+playerPair a b = { p1: a, p2: b }
 
 
 
--- Unfortunate debugging boilerplate:
+----- AI -----
+
+rockAI :: Hand
+rockAI = Rock -- Dumb as a bag of.
+
+
+
+
+
+
+----- Unfortunate debugging boilerplate: -----
 import Data.Generic (class Generic, gShow)
 
 derive instance genHand :: Generic Hand

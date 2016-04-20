@@ -1,29 +1,86 @@
 module App.Play where
 
-import App.Game (Hand)
+import App.Game (PlayerPair, Result(..), Hand(..), Round, playerPair, winner, rockAI)
 import Data.Maybe (Maybe(..))
-import Pux.Html (button, text, div, Html)
+import Data.Maybe (maybe, Maybe(..))
+import Pux.Html (h2, p, button, text, div, Html)
 import Pux.Html.Attributes (className)
 import Pux.Html.Events (onClick)
 import Prelude hiding (div)
 
-type State = { score :: Int }
+------ State ------
+type State = { scores       :: { p1 :: Int, p2 :: Int }
+             , currentRound :: Maybe { result :: Result
+                                     , round :: Round }
+             }
 
 init :: State
-init = { score: 0 }
+init = { scores: { p1: 0, p2: 0 }
+       , currentRound: Nothing
+       }
 
-data Action = Win
+------ Actions and Updating ------
+data Action = Throw Hand
             | ResetGame
 
 update :: Action -> State -> State
-update Win state = state { score = state.score + 1 }
-update ResetGame state = init
+update ResetGame      state = init
+update (Throw p1Hand) state =
+  let p2Hand     = rockAI
+      gameResult = winner p1Hand p2Hand
+      scoreFromResult p1 p2 =
+        case gameResult of
+          Draw  -> { p1: p1,     p2: p2    }
+          P1Won -> { p1: p1 + 1, p2: p2    }
+          P2Won -> { p1: p1,     p2: p2 + 1}
+   in state { currentRound =
+                Just { result: gameResult
+                     , round: { p1: p1Hand, p2: p2Hand }
+                     }
+            , scores =
+                (scoreFromResult state.scores.p1 state.scores.p2)
+            }
 
+
+------ View, to produce HTML ------
 view :: State -> Html Action
 view state =
   div [ className "game" ]
-    [ button [ onClick (\_ -> Win) ]
-             [ text (show state.score) ]
-    , button [ onClick (\_ -> ResetGame) ]
-             [ text "Reset" ]
+    [ div [ className "play"]
+      [ div [ className "selections" ]
+          ( map (\o ->
+              button [ onClick (\_ -> Throw o.action) ]
+                     [ text o.label ]
+            ) options
+          )
+      , div [ className "scoreboard"]
+          [ div [ className "score me" ] [ text ("😃 " <> show state.scores.p1) ]
+          , div [ className "score ai" ] [ text ("💻 " <> show state.scores.p2) ]
+          ]
+      , div [ className "results" ]
+          ( maybe []
+              (\r -> [ p [] [ text ("You threw: " <> (handToIcon r.round.p1)) ]
+                     , p [] [ text ("AI threw: "  <> (handToIcon r.round.p2)) ]
+                     , p [] [ text ("Result: "    <> (resultToText r.result)) ]
+                     ]
+              )
+              state.currentRound
+          )
+      , div [ className "previous-rounds" ]
+          [ h2 [] [ button [ onClick (\_ -> ResetGame) ]
+                           [ text "Reset Game" ]
+                  ]
+          ]
+      ]
     ]
+  where
+    options = map (\h -> { action: h, label: handToIcon h })
+                  [ Rock, Paper, Scissors ]
+    handToIcon h = case h of
+                      Rock     -> "🍪"
+                      Paper    -> "📰"
+                      Scissors -> "🔪"
+    resultToText r = case r of
+                      P1Won -> "✅ You Won"
+                      P2Won -> "❌ AI Won"
+                      Draw  -> "💅 Draw"
