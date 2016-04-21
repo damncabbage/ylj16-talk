@@ -32,4 +32,12 @@ var playFreq = function(freq) {
   };
 };
 
-exports = {}
+exports.playHigh = function() {
+  playFreq(391.99543598174995); // G3
+};
+exports.playMid = function() {
+  playFreq(261.62556530059896); // C3
+};
+exports.playLow = function() {
+  playFreq(164.81377845643513); // E2
+};

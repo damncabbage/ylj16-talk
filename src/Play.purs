@@ -1,6 +1,7 @@
 module App.Play where
 
 import App.Game (Result(..), Hand(..), Round, winner, randomAI)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Random (RANDOM)
 import DOM (DOM)
@@ -27,8 +28,10 @@ init = { scores: { p1: 0, p2: 0 }
 data Action = Throw Hand
             | CalculateResult Hand Hand
             | ResetGame
+            | None
 
 update :: forall eff. Action -> State -> EffModel State Action (dom :: DOM, random :: RANDOM | eff)
+update None           state = noEffects state
 update ResetGame      state = noEffects init
 update (Throw p1Hand) state = {
     state: state,
@@ -44,7 +47,7 @@ update (CalculateResult p1Hand p2Hand) state =
           Draw  -> { p1: p1,     p2: p2    }
           P1Won -> { p1: p1 + 1, p2: p2    }
           P2Won -> { p1: p1,     p2: p2 + 1}
-   in noEffects $
+   in { state:
         state { currentRound =
                   Just { result: gameResult
                        , round: { p1: p1Hand, p2: p2Hand }
@@ -52,6 +55,14 @@ update (CalculateResult p1Hand p2Hand) state =
               , scores =
                   (scoreFromResult state.scores.p1 state.scores.p2)
               }
+      , effects: [ do
+          liftEff $ case gameResult of
+                      Draw  -> playMid
+                      P1Won -> playHigh
+                      P2Won -> playLow
+          pure None
+        ]
+      }
 
 
 ------ View, to produce HTML ------
@@ -96,3 +107,8 @@ view state =
                       P1Won -> "✅ You Won"
                       P2Won -> "❌ AI Won"
                       Draw  -> "💅 Draw"
+
+------ Helpers ------
+foreign import playHigh :: forall eff. Eff (dom :: DOM | eff) Unit
+foreign import playMid  :: forall eff. Eff (dom :: DOM | eff) Unit
+foreign import playLow  :: forall eff. Eff (dom :: DOM | eff) Unit
